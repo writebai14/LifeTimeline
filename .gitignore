@@ -8,3 +8,5 @@ build
 # ignore personal media
 data/
 
+# docs may contain sensitive PRD or sample data
+docs/
