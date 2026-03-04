@@ -6,4 +6,5 @@ dist
 build
 
 # ignore personal media
-data/media/
+data/
+
