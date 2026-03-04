@@ -1,0 +1,43 @@
+{
+  "date": "2026-03-01",
+  "blocks": [
+    {
+      "id": "bmm7h9a7qztb5e1",
+      "start": "14:45",
+      "end": "15:00",
+      "summary": "聊天测试系统",
+      "linkedMediaIds": [],
+      "source": "manual"
+    },
+    {
+      "id": "bmm7h9a7qfefymx",
+      "start": "15:00",
+      "end": "15:20",
+      "summary": "开发快捷指令",
+      "linkedMediaIds": [],
+      "source": "manual"
+    },
+    {
+      "id": "bmm7h9a7q3dzk66",
+      "start": "15:20",
+      "end": "16:08",
+      "summary": "测试备忘录指令",
+      "linkedMediaIds": [],
+      "source": "manual"
+    }
+  ],
+  "media": [
+    {
+      "id": "1772340044483",
+      "capturedAt": "2026-03-01T03:43:34.000Z",
+      "filePath": "1772340044483.PNG",
+      "type": "photo"
+    },
+    {
+      "id": "1772340044497",
+      "capturedAt": "2026-03-01T03:46:39.000Z",
+      "filePath": "1772340044497.PNG",
+      "type": "photo"
+    }
+  ]
+}

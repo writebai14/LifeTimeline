@@ -1,0 +1,210 @@
+{
+  "date": "2026-02-27",
+  "blocks": [
+    {
+      "id": "bmm648p6d6nifhz",
+      "start": "07:15",
+      "end": "08:00",
+      "summary": "醒来，洗漱；厕所",
+      "category": "生活",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6dxypklw",
+      "start": "08:00",
+      "end": "08:17",
+      "summary": "早餐面条",
+      "category": "生活",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6dwjkyys",
+      "start": "08:17",
+      "end": "09:00",
+      "summary": "驾车通勤；走高架下，体验不好，还走错路一次",
+      "category": "通勤",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6d5en71o",
+      "start": "09:00",
+      "end": "10:00",
+      "summary": "再次尝试OpenClaw部署，新建用户，成功部署",
+      "category": "研究",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "b1772270908145",
+      "start": "10:00",
+      "end": "10:45",
+      "summary": "研究飞书Channel的配置，完成配置✌️新技能Get",
+      "category": "研究",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "bmm648p6dqqz7kf",
+      "start": "10:30",
+      "end": "10:45",
+      "summary": "照片",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6dr71mql",
+      "start": "10:45",
+      "end": "11:00",
+      "summary": "厕所",
+      "category": "休息",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6du5nfyl",
+      "start": "11:00",
+      "end": "12:15",
+      "summary": "和老朱讨论龙虾部署的战略意义：协议层的全代理，全新的交互方式和服务方式，很振奋",
+      "category": "工作",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "b1772271424606",
+      "start": "12:15",
+      "end": "13:15",
+      "summary": "午餐园区3号楼食堂，初体验",
+      "category": "休息",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271131100",
+      "start": "13:15",
+      "end": "13:45",
+      "summary": "月度信用卡还款+生活缴费+权益领取，并制作了SOP笔记",
+      "category": "生活",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271143366",
+      "start": "13:45",
+      "end": "14:30",
+      "summary": "查看专利代理方案材料，和林芳芳电话沟通",
+      "category": "工作",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271152558",
+      "start": "14:30",
+      "end": "14:45",
+      "summary": "公司介绍发给管总",
+      "category": "工作",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271168539",
+      "start": "14:45",
+      "end": "15:10",
+      "summary": "年前投递的候选人简历筛选",
+      "category": "工作",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271180848",
+      "start": "15:10",
+      "end": "15:30",
+      "summary": "厕所",
+      "category": "休息",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271194175",
+      "start": "15:30",
+      "end": "16:30",
+      "summary": "尝试推进惠民保数据分析&合并，清洗了一下，发现质量还是有问题",
+      "category": "工作",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "b1772271204115",
+      "start": "16:30",
+      "end": "17:45",
+      "summary": "和老朱讨论下数据质检问题，同步下要求，安排老朱给奚洁同步工作",
+      "linkedMediaIds": []
+    },
+    {
+      "id": "bmm648p6dja9uxs",
+      "start": "17:45",
+      "end": "18:15",
+      "summary": "学习知识产权音频笔记",
+      "category": "工作",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6d0kg6vo",
+      "start": "18:15",
+      "end": "19:00",
+      "summary": "驾车，前往【金创大厦】充电；同步晚餐喜士多便当",
+      "category": "休息",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6dzf9k3i",
+      "start": "19:00",
+      "end": "19:25",
+      "summary": "驾车通勤",
+      "category": "通勤",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6drxlsu6",
+      "start": "19:25",
+      "end": "20:25",
+      "summary": "宜家挑选生活必需家具",
+      "category": "生活",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6drim2sy",
+      "start": "20:25",
+      "end": "21:00",
+      "summary": "洗澡",
+      "category": "生活",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6dczo7nf",
+      "start": "21:00",
+      "end": "22:00",
+      "summary": "原神刷草本，并且3选1 reroll圣遗物，小草神毕业",
+      "category": "游戏",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6d5b8esp",
+      "start": "22:00",
+      "end": "22:15",
+      "summary": "刷抖音看看草神配队",
+      "category": "休息",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    },
+    {
+      "id": "bmm648p6d8ca5dq",
+      "start": "22:15",
+      "end": "23:30",
+      "summary": "刷抖音，睡觉",
+      "linkedMediaIds": [],
+      "source": "from_media"
+    }
+  ],
+  "media": []
+}

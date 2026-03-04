@@ -1,0 +1,95 @@
+.block-editor-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.block-editor {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 460px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  font-size: 1.05rem;
+}
+
+.block-editor h3 {
+  margin: 0 0 20px;
+  font-size: 1.35rem;
+}
+
+.block-editor .field {
+  margin-bottom: 16px;
+}
+
+.block-editor .field label {
+  display: block;
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.block-editor .field input,
+.block-editor .field select,
+.block-editor .field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-btn {
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.category-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.category-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.block-editor .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.block-editor .actions button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+.block-editor .actions button[type="button"] {
+  background: var(--border);
+  color: var(--text);
+}
+
+.block-editor .actions button[type="submit"] {
+  background: var(--accent);
+  color: #fff;
+}

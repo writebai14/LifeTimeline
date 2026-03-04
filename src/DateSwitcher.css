@@ -1,0 +1,47 @@
+.date-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-switcher button {
+  width: 32px;
+  height: 32px;
+  background: var(--border);
+  color: var(--text);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-switcher button:hover {
+  background: var(--timeline);
+}
+
+.date-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.date-display {
+  font-size: 0.95rem;
+  color: var(--text);
+  padding: 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.date-display:hover {
+  border-color: var(--accent);
+}
