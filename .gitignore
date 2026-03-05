@@ -9,4 +9,6 @@ build
 data/
 
 # docs may contain sensitive PRD or sample data
-docs/
+docs/*
+!docs/CHANGELOG.md
+!docs/开发者接手指南.md

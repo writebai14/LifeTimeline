@@ -174,12 +174,18 @@ export function DayView({ day, isToday, onUpdate }: Props) {
                 return (
                   <div
                     key={b.id}
-                    className="block-card"
+                    className={`block-card ${b.category ? 'has-category' : ''}`}
                     data-category={b.category}
                     style={{
                       top: `${top}%`,
                       height: `${height}%`,
-                      ...(categoryColor ? { backgroundColor: `${categoryColor}35`, borderColor: `${categoryColor}aa` } : {}),
+                      ...(categoryColor
+                        ? {
+                            ['--cat-color' as string]: `${categoryColor}`,
+                            ['--cat-border' as string]: `${categoryColor}bb`,
+                            ['--cat-bg' as string]: `${categoryColor}2e`,
+                          }
+                        : {}),
                     }}
                     onClick={() => setEditingBlock(b)}
                   >

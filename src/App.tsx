@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { todayStr } from './utils'
-import { fetchDay, saveDay } from './api'
+import { fetchDay, fetchDayList, saveDay } from './api'
 import type { Day } from './types'
 import { DayView } from './DayView'
 import { DateSwitcher } from './DateSwitcher'
 import { QuickNote } from './QuickNote'
 import { MediaUpload } from './MediaUpload'
+import { ContributionCalendar } from './ContributionCalendar'
+import './ContributionCalendar.css'
 import './App.css'
 
 function emptyDay(date: string): Day {
@@ -16,11 +18,24 @@ function emptyDay(date: string): Day {
   }
 }
 
+function dayRichnessScore(day: Day): number {
+  const blockScore = day.blocks.length * 2
+  const mediaScore = day.media.length * 1.5
+  const taskScore = day.taskSection
+    ? [day.taskSection.todayTasks, day.taskSection.tomorrowGoals, day.taskSection.weekTasks].filter(Boolean).length * 1.2
+    : 0
+  const summaryScore = day.summary
+    ? [day.summary.completed, day.summary.notCompleted, day.summary.exceeded].filter(Boolean).length * 1.2
+    : 0
+  return blockScore + mediaScore + taskScore + summaryScore
+}
+
 function App() {
   const [currentDate, setCurrentDate] = useState(todayStr)
   const [day, setDay] = useState<Day | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [dayScores, setDayScores] = useState<Record<string, number>>({})
 
   const loadDay = useCallback(async (date: string) => {
     setLoading(true)
@@ -35,15 +50,47 @@ function App() {
     }
   }, [])
 
+  const loadContributionData = useCallback(async () => {
+    try {
+      const dates = await fetchDayList()
+      if (!dates.length) {
+        setDayScores({})
+        return
+      }
+      const data = await Promise.all(
+        dates.map(async (date) => {
+          try {
+            return await fetchDay(date)
+          } catch {
+            return null
+          }
+        })
+      )
+      const scores: Record<string, number> = {}
+      for (const item of data) {
+        if (!item) continue
+        scores[item.date] = dayRichnessScore(item)
+      }
+      setDayScores(scores)
+    } catch (e) {
+      console.error('加载活跃度数据失败:', e)
+    }
+  }, [])
+
   useEffect(() => {
     loadDay(currentDate)
   }, [currentDate, loadDay])
+
+  useEffect(() => {
+    loadContributionData()
+  }, [loadContributionData])
 
   const persistDay = useCallback(async (next: Day) => {
     setDay(next)
     setSaving(true)
     try {
       await saveDay(next)
+      setDayScores((prev) => ({ ...prev, [next.date]: dayRichnessScore(next) }))
     } catch (e) {
       console.error(e)
     } finally {
@@ -62,6 +109,12 @@ function App() {
           onChange={setCurrentDate}
         />
         <div className="header-actions">
+          <ContributionCalendar
+            selectedDate={currentDate}
+            scores={dayScores}
+            onSelectDate={setCurrentDate}
+            weeksToShow={14}
+          />
           <QuickNote
             currentDate={currentDate}
             day={day}
