@@ -29,6 +29,26 @@
   border-radius: 4px;
 }
 
+.btn-done {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  background: rgba(46, 204, 113, 0.08);
+  border: 1px solid rgba(46, 204, 113, 0.35);
+  color: #1f7a4a;
+  border-radius: 999px;
+}
+
+.btn-done:hover {
+  border-color: rgba(46, 204, 113, 0.6);
+  background: rgba(46, 204, 113, 0.12);
+}
+
+.btn-done.done {
+  background: rgba(46, 204, 113, 0.14);
+  border-color: rgba(46, 204, 113, 0.7);
+  color: #136a3b;
+}
+
 .day-header-actions {
   display: flex;
   align-items: center;
@@ -48,6 +68,19 @@
 .btn-export:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.btn-export:disabled,
+.btn-add-block:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-export:disabled:hover,
+.btn-add-block:disabled:hover {
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--surface);
 }
 
 .btn-add-block {

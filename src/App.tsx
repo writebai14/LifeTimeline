@@ -15,6 +15,7 @@ function emptyDay(date: string): Day {
     date,
     blocks: [],
     media: [],
+    done: false,
   }
 }
 
@@ -36,6 +37,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [dayScores, setDayScores] = useState<Record<string, number>>({})
+  const [doneDates, setDoneDates] = useState<Record<string, boolean>>({})
 
   const loadDay = useCallback(async (date: string) => {
     setLoading(true)
@@ -55,6 +57,7 @@ function App() {
       const dates = await fetchDayList()
       if (!dates.length) {
         setDayScores({})
+        setDoneDates({})
         return
       }
       const data = await Promise.all(
@@ -67,11 +70,14 @@ function App() {
         })
       )
       const scores: Record<string, number> = {}
+      const dones: Record<string, boolean> = {}
       for (const item of data) {
         if (!item) continue
         scores[item.date] = dayRichnessScore(item)
+        if (item.done) dones[item.date] = true
       }
       setDayScores(scores)
+      setDoneDates(dones)
     } catch (e) {
       console.error('加载活跃度数据失败:', e)
     }
@@ -91,6 +97,7 @@ function App() {
     try {
       await saveDay(next)
       setDayScores((prev) => ({ ...prev, [next.date]: dayRichnessScore(next) }))
+      setDoneDates((prev) => ({ ...prev, [next.date]: !!next.done }))
     } catch (e) {
       console.error(e)
     } finally {
@@ -99,6 +106,7 @@ function App() {
   }, [])
 
   const isToday = currentDate === todayStr()
+  const isLocked = !!day?.done
 
   return (
     <div className="app">
@@ -112,6 +120,7 @@ function App() {
           <ContributionCalendar
             selectedDate={currentDate}
             scores={dayScores}
+            doneDates={doneDates}
             onSelectDate={setCurrentDate}
             weeksToShow={14}
           />
@@ -119,13 +128,13 @@ function App() {
             currentDate={currentDate}
             day={day}
             onSave={persistDay}
-            disabled={loading}
+            disabled={loading || isLocked}
           />
           <MediaUpload
             currentDate={currentDate}
             day={day}
             onSave={persistDay}
-            disabled={loading}
+            disabled={loading || isLocked}
           />
           {saving && <span className="saving">保存中…</span>}
         </div>

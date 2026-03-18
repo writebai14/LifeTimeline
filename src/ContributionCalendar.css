@@ -108,6 +108,7 @@
   border: 1px solid rgba(27, 47, 74, 0.14);
   border-radius: 2px;
   padding: 0;
+  position: relative;
 }
 
 .contrib-cell:hover {
@@ -118,6 +119,20 @@
 .contrib-cell.selected {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* 已完成✅：在格子上叠加一个小勾，颜色仍由丰富度决定 */
+.contrib-cell.done::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  line-height: 1;
+  color: rgba(20, 54, 103, 0.85);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  pointer-events: none;
 }
 
 .contrib-legend {

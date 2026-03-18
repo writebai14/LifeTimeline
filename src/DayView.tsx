@@ -25,8 +25,10 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   const allMediaSorted = [...day.media].sort((a, b) => new Date(a.capturedAt).getTime() - new Date(b.capturedAt).getTime())
   const blocksSorted = [...day.blocks].sort((a, b) => a.start.localeCompare(b.start))
   const trackHeight = timelineTotalHeight()
+  const isLocked = !!day.done
 
   const handleTrackDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isLocked) return
     const t = e.target as HTMLElement
     if (t !== e.currentTarget && !t.classList?.contains('empty-hint')) return
     const el = trackRef.current
@@ -38,6 +40,7 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   }
 
   const handleSaveBlock = (b: Block) => {
+    if (isLocked) return
     const exists = day.blocks.some((x) => x.id === b.id)
     const nextBlocks = exists
       ? day.blocks.map((x) => (x.id === b.id ? b : x))
@@ -49,12 +52,20 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   }
 
   const handleDeleteBlock = (id: string) => {
+    if (isLocked) return
     if (!confirm('确定删除这条记录？')) return
     onUpdate({
       ...day,
       blocks: day.blocks.filter((b) => b.id !== id),
     })
     setEditingBlock(null)
+  }
+
+  const toggleDone = () => {
+    onUpdate({ ...day, done: !day.done })
+    setEditingBlock(null)
+    setAddingAt(undefined)
+    setImportOpen(false)
   }
 
   const handleCopyToMemo = async () => {
@@ -79,6 +90,7 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   }
 
   const handleImport = () => {
+    if (isLocked) return
     setImportError(null)
     try {
       const parsed = parseDayImport(importText, day.date)
@@ -104,6 +116,7 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   }
 
   const handleDeleteMedia = async (m: Media) => {
+    if (isLocked) return
     const nextDay: Day = {
       ...day,
       media: day.media.filter((x) => x.id !== m.id),
@@ -136,16 +149,34 @@ export function DayView({ day, isToday, onUpdate }: Props) {
       <div className="day-view-header">
         <span className="day-title">{day.date} {day.dayOfWeek ?? dayOfWeek(day.date)}</span>
         {isToday && <span className="today-badge">今天</span>}
+        <button
+          type="button"
+          className={`btn-done ${day.done ? 'done' : ''}`}
+          onClick={toggleDone}
+          title={day.done ? '已完成：进入查看为主模式（可再次点击取消完成）' : '标记为完成✅：进入查看为主模式'}
+        >
+          {day.done ? '已完成✅' : '完成✅'}
+        </button>
         <div className="day-header-actions">
           <button type="button" className="btn-export" onClick={handleCopyToMemo} title="复制到剪贴板后粘贴到 Apple 备忘录">
             {copyStatus === 'ok' ? '已复制' : copyStatus === 'fail' ? '复制失败' : '复制到备忘录'}
           </button>
           <button type="button" className="btn-export" onClick={handleExportFile}>导出为文件</button>
-          <button type="button" className="btn-export" onClick={() => { setImportOpen(true); setImportText(''); setImportError(null); }}>导入</button>
+          <button
+            type="button"
+            className="btn-export"
+            onClick={() => { if (isLocked) return; setImportOpen(true); setImportText(''); setImportError(null); }}
+            disabled={isLocked}
+            title={isLocked ? '当天已完成✅（锁定），如需导入请先取消完成' : undefined}
+          >
+            导入
+          </button>
           <button
             type="button"
             className="btn-add-block"
-            onClick={() => setAddingAt(isToday ? timeStr(new Date()) : '00:00')}
+            onClick={() => { if (isLocked) return; setAddingAt(isToday ? timeStr(new Date()) : '00:00') }}
+            disabled={isLocked}
+            title={isLocked ? '当天已完成✅（锁定），如需新增请先取消完成' : undefined}
           >
             + 添加时间块
           </button>
@@ -187,7 +218,7 @@ export function DayView({ day, isToday, onUpdate }: Props) {
                           }
                         : {}),
                     }}
-                    onClick={() => setEditingBlock(b)}
+                    onClick={() => { if (!isLocked) setEditingBlock(b) }}
                   >
                     <div className="block-time">
                       {b.start} – {b.end}
@@ -195,14 +226,16 @@ export function DayView({ day, isToday, onUpdate }: Props) {
                     </div>
                     <div className="block-summary">{b.summary}</div>
                     {b.location && <div className="block-meta">📍 {b.location}</div>}
-                    <button
-                      type="button"
-                      className="block-delete"
-                      onClick={(e) => { e.stopPropagation(); handleDeleteBlock(b.id); }}
-                      aria-label="删除"
-                    >
-                      删除
-                    </button>
+                    {!isLocked && (
+                      <button
+                        type="button"
+                        className="block-delete"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteBlock(b.id); }}
+                        aria-label="删除"
+                      >
+                        删除
+                      </button>
+                    )}
                   </div>
                 )
               })}
@@ -231,7 +264,9 @@ export function DayView({ day, isToday, onUpdate }: Props) {
                     </span>
                     <div className="photo-row-actions">
                       <a href={mediaUrl(m.filePath)} download={m.filePath} className="btn-attachment">下载</a>
-                      <button type="button" className="btn-attachment btn-delete" onClick={() => handleDeleteMedia(m)}>删除</button>
+                      {!isLocked && (
+                        <button type="button" className="btn-attachment btn-delete" onClick={() => handleDeleteMedia(m)}>删除</button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -262,13 +297,13 @@ export function DayView({ day, isToday, onUpdate }: Props) {
             {importError && <p className="import-error">{importError}</p>}
             <div className="import-actions">
               <button type="button" onClick={() => setImportOpen(false)}>取消</button>
-              <button type="button" onClick={handleImport}>导入</button>
+              <button type="button" onClick={handleImport} disabled={isLocked}>导入</button>
             </div>
           </div>
         </div>
       )}
 
-      {(editingBlock || addingAt) && (
+      {!isLocked && (editingBlock || addingAt) && (
         <BlockEditor
           block={editingBlock ?? null}
           defaultStart={addingAt}

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 interface Props {
   selectedDate: string
   scores: Record<string, number>
+  doneDates?: Record<string, boolean>
   onSelectDate: (date: string) => void
   weeksToShow?: number
 }
@@ -41,7 +42,7 @@ function scoreToLevel(score: number, thresholds: [number, number, number]): numb
   return 4
 }
 
-export function ContributionCalendar({ selectedDate, scores, onSelectDate, weeksToShow = 14 }: Props) {
+export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onSelectDate, weeksToShow = 14 }: Props) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -131,18 +132,19 @@ export function ContributionCalendar({ selectedDate, scores, onSelectDate, weeks
                     const score = scores[dateKey] ?? 0
                     const level = scoreToLevel(score, thresholds)
                     const isSelected = selectedDate === dateKey
+                    const isDone = !!doneDates[dateKey]
                     return (
                       <button
                         key={dateKey}
                         type="button"
-                        className={`contrib-cell level-${level} ${isSelected ? 'selected' : ''}`}
+                        className={`contrib-cell level-${level} ${isSelected ? 'selected' : ''} ${isDone ? 'done' : ''}`}
                         style={{ backgroundColor: LEVEL_COLORS[level] }}
-                        title={`${dateKey} · 丰富度 ${score.toFixed(1)}`}
+                        title={`${dateKey} · 丰富度 ${score.toFixed(1)}${isDone ? ' · 已完成✅' : ''}`}
                         onClick={() => {
                           onSelectDate(dateKey)
                           setOpen(false)
                         }}
-                        aria-label={`${dateKey} 丰富度 ${score.toFixed(1)}`}
+                        aria-label={`${dateKey} 丰富度 ${score.toFixed(1)}${isDone ? ' 已完成' : ''}`}
                       />
                     )
                   })}

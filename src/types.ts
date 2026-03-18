@@ -40,6 +40,8 @@ export interface Day {
   dayOfWeek?: string;
   taskSection?: TaskSection;
   summary?: DaySummary;
+  /** 当天记录已完成：主要用于“查看为主/活跃度追踪” */
+  done?: boolean;
   blocks: Block[];
   media: Media[];
 }
