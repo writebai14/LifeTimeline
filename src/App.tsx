@@ -7,7 +7,6 @@ import { DateSwitcher } from './DateSwitcher'
 import { QuickNote } from './QuickNote'
 import { MediaUpload } from './MediaUpload'
 import { ContributionCalendar } from './ContributionCalendar'
-import './ContributionCalendar.css'
 import './App.css'
 
 function emptyDay(date: string): Day {
@@ -122,7 +121,7 @@ function App() {
             scores={dayScores}
             doneDates={doneDates}
             onSelectDate={setCurrentDate}
-            weeksToShow={14}
+            weeksToShow={52}
           />
           <QuickNote
             currentDate={currentDate}
