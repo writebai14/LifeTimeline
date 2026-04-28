@@ -67,7 +67,7 @@ const SHORTCUT_TIMESTAMP_LINE = /^\s*(\d{4})-(\d{2})-(\d{2})\s+(\d{1,2}):(\d{2})
 /**
  * 解析「快捷指令速记」时间戳文本，按相邻时间戳间隔合成时间块。
  * 每条为「日期 时间 ｜ 描述」，表示「到该时刻为止」刚结束的那段时间的总结（过去式）。
- * 第一条的区间取「该时刻 - 15 分钟」到「该时刻」；后续每条为「上一时刻」到「该时刻」。
+ * 统一按「该时刻 - 15 分钟」到「该时刻」生成时间块。
  * 仅处理与 dateStr 匹配的日期行。
  */
 export function parseShortcutTimestampLines(text: string, dateStr: string): Block[] | null {
@@ -87,8 +87,7 @@ export function parseShortcutTimestampLines(text: string, dateStr: string): Bloc
   const blocks: Block[] = []
   for (let i = 0; i < entries.length; i++) {
     const end = entries[i].time
-    const start =
-      i === 0 ? addMinutes(end, -DEFAULT_BLOCK_MINUTES) : entries[i - 1].time
+    const start = addMinutes(end, -DEFAULT_BLOCK_MINUTES)
     blocks.push({
       id: generateId(),
       start,
