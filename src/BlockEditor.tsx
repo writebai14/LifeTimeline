@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { CATEGORY_PRESETS, DEFAULT_BLOCK_MINUTES } from './constants'
-import { addMinutes } from './utils'
+import { addMinutes, durationBetween, formatDurationZh } from './utils'
 import type { Block } from './types'
 import './BlockEditor.css'
 
@@ -26,6 +26,29 @@ export function BlockEditor({ block, defaultStart, onSave, onCancel }: Props) {
     }
   }, [isNew, defaultStart])
 
+  const minDur = DEFAULT_BLOCK_MINUTES
+
+  const bumpStart = (delta: number) => {
+    const next = addMinutes(start, delta)
+    if (durationBetween(next, end) < minDur) {
+      setEnd(addMinutes(next, minDur))
+    }
+    setStart(next)
+  }
+
+  const bumpEnd = (delta: number) => {
+    const next = addMinutes(end, delta)
+    if (durationBetween(start, next) < minDur) {
+      if (delta < 0) {
+        setEnd(addMinutes(start, minDur))
+        return
+      }
+    }
+    setEnd(next)
+  }
+
+  const durationLabel = formatDurationZh(durationBetween(start, end))
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!summary.trim()) return
@@ -47,11 +70,30 @@ export function BlockEditor({ block, defaultStart, onSave, onCancel }: Props) {
         <h3>{isNew ? '新建时间块' : '编辑时间块'}</h3>
         <div className="field">
           <label>开始</label>
-          <input type="time" value={start} onChange={e => setStart(e.target.value)} step="900" />
+          <div className="time-control">
+            <button type="button" className="time-nudge" onClick={() => bumpStart(-15)} aria-label="开始时间减15分钟">
+              −15
+            </button>
+            <input type="time" value={start} onChange={(e) => setStart(e.target.value)} step="900" className="time-control-input" />
+            <button type="button" className="time-nudge" onClick={() => bumpStart(15)} aria-label="开始时间加15分钟">
+              +15
+            </button>
+          </div>
         </div>
         <div className="field">
           <label>结束</label>
-          <input type="time" value={end} onChange={e => setEnd(e.target.value)} step="900" />
+          <div className="time-control">
+            <button type="button" className="time-nudge" onClick={() => bumpEnd(-15)} aria-label="结束时间减15分钟">
+              −15
+            </button>
+            <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} step="900" className="time-control-input" />
+            <button type="button" className="time-nudge" onClick={() => bumpEnd(15)} aria-label="结束时间加15分钟">
+              +15
+            </button>
+          </div>
+        </div>
+        <div className="duration-summary" role="status" aria-live="polite">
+          {start} – {end}（{durationLabel}）
         </div>
         <div className="field">
           <label>描述 *</label>

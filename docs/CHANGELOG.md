@@ -2,6 +2,13 @@
 
 本文件记录项目的功能变更，帮助后续开发者快速理解“最近改了什么、为什么改、影响范围在哪”。
 
+## 2026-04-28
+
+### 移除：「一句话」Web 入口（保留数据与 API 契约）
+- 产品内下线「一句话」按钮与 `QuickNote` 组件；详见 `docs/一句话功能移除说明.md`。
+- `BlockSource` 仍含 `from_quick_note`；`PUT /api/days/:date` 与 `saveDay` 可继续写入该来源，便于重做或脚本。
+- 影响文件：`src/App.tsx`、`src/DayView.tsx`、`src/types.ts`、`src/api.ts`、`server/index.js`、`README.md`；删除 `src/QuickNote.tsx`、`src/QuickNote.css`。
+
 ## 2026-03-05
 
 ### 新增：记录活跃度日历（类似 GitHub Contribution Graph）

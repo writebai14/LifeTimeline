@@ -44,6 +44,52 @@
   border-radius: 8px;
 }
 
+.block-editor .time-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.block-editor .time-control .time-control-input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.block-editor .time-nudge {
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  padding: 10px 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.block-editor .time-nudge:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(74, 111, 165, 0.06);
+}
+
+.block-editor .duration-summary {
+  margin: -4px 0 18px;
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 1.08rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  background: linear-gradient(180deg, rgba(74, 111, 165, 0.1) 0%, rgba(74, 111, 165, 0.04) 100%);
+  border: 1px solid rgba(74, 111, 165, 0.2);
+  border-radius: 10px;
+}
+
 .category-buttons {
   display: flex;
   flex-wrap: wrap;

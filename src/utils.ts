@@ -37,6 +37,31 @@ export function timeToMinutes(time: string): number {
   return (h ?? 0) * 60 + (m ?? 0);
 }
 
+/**
+ * 起止间隔（分钟）。end 早于 start 时：若钟面倒序差距很小（≤2h）视为未完成输入/误排，返回 0；
+ * 否则按跨午夜计（如 23:00–次日 01:00）。
+ */
+export function durationBetween(start: string, end: string): number {
+  const s = timeToMinutes(start);
+  const e0 = timeToMinutes(end);
+  if (e0 === s) return 0;
+  if (e0 > s) return e0 - s;
+  const backward = s - e0;
+  if (backward <= 2 * 60) return 0;
+  return e0 + 24 * 60 - s;
+}
+
+/** 中文时长文案，如 45分钟、1小时、1小时30分钟 */
+export function formatDurationZh(totalMinutes: number): string {
+  const m = Math.max(0, Math.round(totalMinutes));
+  if (m === 0) return '0分钟';
+  if (m < 60) return `${m}分钟`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  if (r === 0) return `${h}小时`;
+  return `${h}小时${r}分钟`;
+}
+
 /** 时间轴：每小时像素；每日为 5:00 至次日 5:00（5 点前置，凌晨后置） */
 export const TIMELINE_PIXELS_PER_HOUR = 200;
 
@@ -67,15 +92,19 @@ export function blockPosition5to5(start: string, end: string): { top: number; he
   return { top, height: Math.max(height, 0.3) };
 }
 
-/** 根据时间轴上的垂直比例(0~1)反推时间，分钟取整到 00/15/30/45（5:00 起算） */
+/**
+ * 根据时间轴上的垂直比例(0~1)反推该横格对应的 15 分钟槽起点（5:00 起算）。
+ * 必须用向下取整到槽边界：若对「当前小时内分钟」做四舍五入，7:45～8:00 一格会误成 8:00。
+ */
 export function ratioToTimeSlot(ratio: number): string {
-  const total = 24 * 60;
-  const minutesFrom5 = Math.max(0, Math.min(1, ratio)) * total;
-  const h = Math.floor(minutesFrom5 / 60);
-  const m = Math.round((minutesFrom5 % 60) / 15) * 15;
-  const hour = (5 + h + (m === 60 ? 1 : 0)) % 24;
-  const min = m === 60 ? 0 : m;
-  return String(hour).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+  const safe = Math.max(0, Math.min(1, ratio));
+  const slotsPerDay = 24 * 4;
+  const slotIndex = Math.min(slotsPerDay - 1, Math.floor(safe * slotsPerDay));
+  const minutesFrom5 = slotIndex * 15;
+  const hoursSince5 = Math.floor(minutesFrom5 / 60);
+  const minOfHour = minutesFrom5 % 60;
+  const clockHour = (5 + hoursSince5) % 24;
+  return String(clockHour).padStart(2, '0') + ':' + String(minOfHour).padStart(2, '0');
 }
 
 /** 将 ISO 时间转为当日 HH:mm（按 15 分钟向下取整） */

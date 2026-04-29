@@ -27,7 +27,8 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   const trackHeight = timelineTotalHeight()
   const isLocked = !!day.done
 
-  const handleTrackDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  /** 仅在点到轨道空白（非时间块、非删除按钮）时，按纵向位置对应 15 分钟横格打开新建 */
+  const handleTrackEmptyClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isLocked) return
     const t = e.target as HTMLElement
     if (t !== e.currentTarget && !t.classList?.contains('empty-hint')) return
@@ -194,10 +195,10 @@ export function DayView({ day, isToday, onUpdate }: Props) {
               ref={trackRef}
               className="timeline-track"
               style={{ height: trackHeight }}
-              onDoubleClick={handleTrackDoubleClick}
+              onClick={handleTrackEmptyClick}
             >
               {blocksSorted.length === 0 && !addingAt && (
-                <p className="empty-hint">暂无记录，点击「添加时间块」或使用「一句话」快速记录</p>
+                <p className="empty-hint">暂无记录：点击时间轴空白处（与横格对齐的 15 分钟）新建，或使用「+ 添加时间块」</p>
               )}
               {blocksSorted.map((b) => {
                 const { top, height } = blockPosition5to5(b.start, b.end)

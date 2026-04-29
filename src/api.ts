@@ -9,6 +9,7 @@ export async function fetchDay(date: string): Promise<Day | null> {
   return res.json();
 }
 
+/** 保存整日 JSON；时间块可含 `source: 'from_quick_note'`（一句话 UI 已移除，契约仍兼容）。 */
 export async function saveDay(day: Day): Promise<void> {
   const res = await fetch(`${BASE}/api/days/${day.date}`, {
     method: 'PUT',

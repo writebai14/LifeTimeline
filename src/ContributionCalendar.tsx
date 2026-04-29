@@ -16,11 +16,11 @@ interface HoverCell {
 }
 
 const LEVEL_CLASSES = [
-  'bg-slate-800/50',
-  'bg-emerald-900/40',
-  'bg-emerald-700/60',
-  'bg-emerald-500',
-  'bg-emerald-400',
+  'bg-slate-200/75 border-slate-300/80',
+  'bg-emerald-100 border-emerald-200',
+  'bg-emerald-200 border-emerald-300',
+  'bg-emerald-300 border-emerald-400',
+  'bg-emerald-500 border-emerald-600',
 ]
 const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六']
 const MONTH_LABELS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
@@ -30,12 +30,6 @@ function toDateString(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
-}
-
-function addDays(input: Date, delta: number): Date {
-  const d = new Date(input)
-  d.setDate(d.getDate() + delta)
-  return d
 }
 
 function scoreThresholds(scores: Record<string, number>): [number, number, number] {
@@ -54,6 +48,12 @@ function scoreToLevel(score: number, thresholds: [number, number, number]): numb
   if (score <= thresholds[1]) return 2
   if (score <= thresholds[2]) return 3
   return 4
+}
+
+function addDays(input: Date, delta: number): Date {
+  const d = new Date(input)
+  d.setDate(d.getDate() + delta)
+  return d
 }
 
 export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onSelectDate, weeksToShow = 52 }: Props) {
@@ -99,15 +99,11 @@ export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onS
     const range = first && last ? `${first.getMonth() + 1}/${first.getDate()} - ${last.getMonth() + 1}/${last.getDate()}` : ''
 
     const trigger = Array.from({ length: 10 }, (_, i) => addDays(today, -(9 - i)))
-    const monthAtCol: string[] = []
-    for (let i = 0; i < cols.length; i++) {
-      const firstDay = cols[i][0]
-      if (i === 0 || firstDay.getMonth() !== cols[i - 1][0].getMonth()) {
-        monthAtCol.push(MONTH_LABELS[firstDay.getMonth()])
-      } else {
-        monthAtCol.push('')
-      }
-    }
+    const monthAtCol: string[] = cols.map((col, i) => {
+      if (i === 0) return MONTH_LABELS[col[0].getMonth()]
+      const firstOfMonth = col.find((d) => d.getDate() === 1)
+      return firstOfMonth ? MONTH_LABELS[firstOfMonth.getMonth()] : ''
+    })
 
     return {
       weeks: cols,
@@ -134,13 +130,9 @@ export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onS
           {triggerDays.map((d) => {
             const dateKey = toDateString(d)
             const score = scores[dateKey] ?? 0
+            const isDone = !!doneDates[dateKey]
             const level = scoreToLevel(score, thresholds)
-            return (
-              <span
-                key={dateKey}
-                className={`h-2 w-2 rounded-sm border border-slate-700 ${LEVEL_CLASSES[level]}`}
-              />
-            )
+            return <span key={dateKey} className={`h-2 w-2 rounded-sm border ${LEVEL_CLASSES[isDone ? 4 : level]}`} />
           })}
         </span>
       </button>
@@ -164,15 +156,18 @@ export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onS
                 {hoverCell.dateKey}：{hoverCell.isDone ? '已完成目标 ✅ ' : ''}{Math.max(0, Math.round(hoverCell.score))} Commits
               </div>
             )}
-            <div className="mb-1 ml-7 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
-              {monthMarkers.map((label, idx) => (
-                <span key={`${label}-${idx}`} className="text-[10px] text-slate-500">
-                  {label}
-                </span>
-              ))}
+            <div className="mb-1 flex min-w-[860px] gap-2 md:min-w-[940px]">
+              <div className="w-7 shrink-0" aria-hidden />
+              <div className="min-w-0 flex-1 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
+                {monthMarkers.map((label, idx) => (
+                  <span key={`${label}-${idx}`} className="text-[10px] text-slate-500">
+                    {label}
+                  </span>
+                ))}
+              </div>
             </div>
             <div className="flex min-w-[860px] gap-2 md:min-w-[940px]">
-              <div className="grid grid-rows-7 gap-[3px] pt-[2px]">
+              <div className="grid w-7 shrink-0 grid-rows-7 gap-[3px] pt-[2px]">
                 {WEEKDAY_LABELS.map((d, idx) => (
                   <span key={d} className={`h-3 text-[10px] leading-3 text-right ${idx % 2 === 1 ? 'text-slate-400' : 'text-transparent'}`}>
                     {idx % 2 === 1 ? d : '·'}
@@ -222,15 +217,12 @@ export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onS
             </div>
           </div>
 
-          <div className="mt-2 flex items-center justify-end gap-2 text-[11px] text-slate-400">
-            <span>Less</span>
+          <div className="mt-3 flex items-center justify-end gap-2 text-[11px] text-slate-400">
+            <span>低</span>
             {LEVEL_CLASSES.map((cellClass, idx) => (
-              <span
-                key={idx}
-                className={`inline-block h-3 w-3 rounded-sm border border-slate-700 ${cellClass}`}
-              />
+              <span key={idx} className={`inline-block h-3 w-3 rounded-sm border ${cellClass}`} />
             ))}
-            <span>More</span>
+            <span>高</span>
             <span className="mx-1 text-slate-600">|</span>
             <span className="inline-flex items-center gap-1">
               <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-[#fde047] shadow-[0_0_8px_rgba(253,224,71,0.6)]">

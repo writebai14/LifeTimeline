@@ -38,6 +38,7 @@ app.get('/api/days/:date', (req, res) => {
   }
 });
 
+// 整日读写：blocks[].source 可为 manual | from_media | from_quick_note（后者无内置 UI，见 docs/一句话功能移除说明.md）
 app.put('/api/days/:date', (req, res) => {
   const file = path.join(DAYS_DIR, `${req.params.date}.json`);
   try {
