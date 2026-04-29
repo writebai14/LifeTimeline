@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { dayOfWeek, timeStr, blockPosition5to5, timelineTotalHeight, TIMELINE_PIXELS_PER_HOUR, ratioToTimeSlot } from './utils'
+import { useState, useRef, useEffect } from 'react'
+import { dayOfWeek, blockPosition5to5, timelineTotalHeight, TIMELINE_PIXELS_PER_HOUR, ratioToTimeSlot } from './utils'
 import { mediaUrl, deleteMedia } from './api'
 import { formatDayExport, formatDayForClipboard, parseDayImport } from './exportDay'
 import type { Day, Block, Media } from './types'
@@ -11,17 +11,23 @@ interface Props {
   day: Day
   isToday: boolean
   onUpdate: (day: Day) => void
+  copySignal?: number
+  exportSignal?: number
+  importSignal?: number
+  onCopyResult?: (ok: boolean) => void
 }
 
-export function DayView({ day, isToday, onUpdate }: Props) {
+export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal = 0, importSignal = 0, onCopyResult }: Props) {
   const [editingBlock, setEditingBlock] = useState<Block | null>(null)
   const [addingAt, setAddingAt] = useState<string | undefined>(undefined)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'ok' | 'fail'>('idle')
   const [importOpen, setImportOpen] = useState(false)
   const [importText, setImportText] = useState('')
   const [importError, setImportError] = useState<string | null>(null)
   const trackRef = useRef<HTMLDivElement>(null)
+  const copySignalRef = useRef(copySignal)
+  const exportSignalRef = useRef(exportSignal)
+  const importSignalRef = useRef(importSignal)
   const allMediaSorted = [...day.media].sort((a, b) => new Date(a.capturedAt).getTime() - new Date(b.capturedAt).getTime())
   const blocksSorted = [...day.blocks].sort((a, b) => a.start.localeCompare(b.start))
   const trackHeight = timelineTotalHeight()
@@ -72,11 +78,9 @@ export function DayView({ day, isToday, onUpdate }: Props) {
   const handleCopyToMemo = async () => {
     try {
       await navigator.clipboard.writeText(formatDayForClipboard(day))
-      setCopyStatus('ok')
-      setTimeout(() => setCopyStatus('idle'), 2000)
+      onCopyResult?.(true)
     } catch {
-      setCopyStatus('fail')
-      setTimeout(() => setCopyStatus('idle'), 2000)
+      onCopyResult?.(false)
     }
   }
 
@@ -115,6 +119,25 @@ export function DayView({ day, isToday, onUpdate }: Props) {
       setImportError(e instanceof Error ? e.message : '解析失败，请确认格式与导出一致')
     }
   }
+
+  useEffect(() => {
+    if (copySignal > copySignalRef.current) handleCopyToMemo()
+    copySignalRef.current = copySignal
+  }, [copySignal])
+
+  useEffect(() => {
+    if (exportSignal > exportSignalRef.current) handleExportFile()
+    exportSignalRef.current = exportSignal
+  }, [exportSignal])
+
+  useEffect(() => {
+    if (importSignal > importSignalRef.current && !isLocked) {
+      setImportOpen(true)
+      setImportText('')
+      setImportError(null)
+    }
+    importSignalRef.current = importSignal
+  }, [importSignal, isLocked])
 
   const handleDeleteMedia = async (m: Media) => {
     if (isLocked) return
@@ -158,30 +181,6 @@ export function DayView({ day, isToday, onUpdate }: Props) {
         >
           {day.done ? '已完成✅' : '完成✅'}
         </button>
-        <div className="day-header-actions">
-          <button type="button" className="btn-export" onClick={handleCopyToMemo} title="复制到剪贴板后粘贴到 Apple 备忘录">
-            {copyStatus === 'ok' ? '已复制' : copyStatus === 'fail' ? '复制失败' : '复制到备忘录'}
-          </button>
-          <button type="button" className="btn-export" onClick={handleExportFile}>导出为文件</button>
-          <button
-            type="button"
-            className="btn-export"
-            onClick={() => { if (isLocked) return; setImportOpen(true); setImportText(''); setImportError(null); }}
-            disabled={isLocked}
-            title={isLocked ? '当天已完成✅（锁定），如需导入请先取消完成' : undefined}
-          >
-            导入
-          </button>
-          <button
-            type="button"
-            className="btn-add-block"
-            onClick={() => { if (isLocked) return; setAddingAt(isToday ? timeStr(new Date()) : '00:00') }}
-            disabled={isLocked}
-            title={isLocked ? '当天已完成✅（锁定），如需新增请先取消完成' : undefined}
-          >
-            + 添加时间块
-          </button>
-        </div>
       </div>
 
       <div className="day-view-body">
@@ -195,10 +194,10 @@ export function DayView({ day, isToday, onUpdate }: Props) {
               ref={trackRef}
               className="timeline-track"
               style={{ height: trackHeight }}
-              onClick={handleTrackEmptyClick}
+              onDoubleClick={handleTrackEmptyClick}
             >
               {blocksSorted.length === 0 && !addingAt && (
-                <p className="empty-hint">暂无记录：点击时间轴空白处（与横格对齐的 15 分钟）新建，或使用「+ 添加时间块」</p>
+                <p className="empty-hint">暂无记录：双击时间轴空白处（与横格对齐的 15 分钟）即可新建</p>
               )}
               {blocksSorted.map((b) => {
                 const { top, height } = blockPosition5to5(b.start, b.end)

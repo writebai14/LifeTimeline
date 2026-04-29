@@ -1,28 +1,26 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { Check } from 'lucide-react'
 
 interface Props {
   selectedDate: string
   scores: Record<string, number>
   doneDates?: Record<string, boolean>
+  totalActiveDays: number
+  totalWords: number
+  totalYears: number
+  onOpenStats: () => void
   onSelectDate: (date: string) => void
   weeksToShow?: number
 }
 
-interface HoverCell {
-  dateKey: string
-  score: number
-  isDone: boolean
-}
-
 const LEVEL_CLASSES = [
-  'bg-slate-200/75 border-slate-300/80',
+  'bg-[#F1F1F1] border-[#E8E8E8]',
   'bg-emerald-100 border-emerald-200',
   'bg-emerald-200 border-emerald-300',
   'bg-emerald-300 border-emerald-400',
   'bg-emerald-500 border-emerald-600',
 ]
-const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六']
+const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日']
 const MONTH_LABELS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
 
 function toDateString(d: Date): string {
@@ -56,183 +54,151 @@ function addDays(input: Date, delta: number): Date {
   return d
 }
 
-export function ContributionCalendar({ selectedDate, scores, doneDates = {}, onSelectDate, weeksToShow = 52 }: Props) {
-  const [open, setOpen] = useState(false)
-  const [hoverCell, setHoverCell] = useState<HoverCell | null>(null)
-  const wrapRef = useRef<HTMLDivElement>(null)
+export function ContributionCalendar({
+  selectedDate,
+  scores,
+  doneDates = {},
+  totalActiveDays,
+  totalWords,
+  totalYears,
+  onOpenStats,
+  onSelectDate,
+  weeksToShow = 12,
+}: Props) {
+  const formatWordCount = (value: number): string => {
+    if (value < 1000) return String(value)
+    return `${Math.round(value / 1000)}K`
+  }
 
-  useEffect(() => {
-    if (!open) return
-    const onPointerDown = (event: PointerEvent) => {
-      if (!wrapRef.current?.contains(event.target as Node)) setOpen(false)
-    }
-    const onEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
-    }
-    window.addEventListener('pointerdown', onPointerDown)
-    window.addEventListener('keydown', onEsc)
-    return () => {
-      window.removeEventListener('pointerdown', onPointerDown)
-      window.removeEventListener('keydown', onEsc)
-    }
-  }, [open])
-
-  const { weeks, thresholds, rangeText, triggerDays, monthMarkers } = useMemo(() => {
+  const { weeks, thresholds, monthMarkers, gentleHint } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const daysToShow = weeksToShow * 7
-    const start = addDays(today, -(daysToShow - 1))
-    start.setDate(start.getDate() - start.getDay())
-
-    const end = new Date(today)
-    end.setDate(end.getDate() + (6 - end.getDay()))
-
-    const allDays: Date[] = []
-    for (let d = new Date(start); d <= end; d = addDays(d, 1)) allDays.push(new Date(d))
+    // 周一到周日：先找到本周周一，再向前回溯指定周数
+    const currentWeekdayMondayFirst = (today.getDay() + 6) % 7 // 周一=0 ... 周日=6
+    const thisMonday = addDays(today, -currentWeekdayMondayFirst)
+    const start = addDays(thisMonday, -((weeksToShow - 1) * 7))
+    const allDays: Date[] = Array.from({ length: weeksToShow * 7 }, (_, i) => addDays(start, i))
 
     const cols: Date[][] = []
     for (let i = 0; i < allDays.length; i += 7) cols.push(allDays.slice(i, i + 7))
 
-    const first = cols[0]?.[0]
-    const last = cols[cols.length - 1]?.[6]
-    const range = first && last ? `${first.getMonth() + 1}/${first.getDate()} - ${last.getMonth() + 1}/${last.getDate()}` : ''
-
-    const trigger = Array.from({ length: 10 }, (_, i) => addDays(today, -(9 - i)))
     const monthAtCol: string[] = cols.map((col, i) => {
       if (i === 0) return MONTH_LABELS[col[0].getMonth()]
       const firstOfMonth = col.find((d) => d.getDate() === 1)
       return firstOfMonth ? MONTH_LABELS[firstOfMonth.getMonth()] : ''
     })
 
+    const recent14 = Array.from({ length: 14 }, (_, i) => addDays(today, -i))
+    const recentActive = recent14.filter((d) => {
+      const k = toDateString(d)
+      return (scores[k] ?? 0) > 0 || !!doneDates[k]
+    }).length
+    const gentle =
+      recentActive <= 3
+        ? '最近记录有点稀疏，今天随手记一条就很好。'
+        : recentActive <= 7
+          ? '最近记录节奏不错，继续保持轻量更新。'
+          : '近期记录很稳定，保持现在的节奏即可。'
+
     return {
       weeks: cols,
       thresholds: scoreThresholds(scores),
-      rangeText: range,
-      triggerDays: trigger,
       monthMarkers: monthAtCol,
+      gentleHint: gentle,
     }
-  }, [scores, weeksToShow])
+  }, [scores, doneDates, weeksToShow])
 
   return (
-    <div className="relative" ref={wrapRef}>
-      <button
-        type="button"
-        className={`inline-flex h-9 items-center gap-2 rounded-md border border-emerald-800/60 px-3 text-emerald-100 transition ${
-          open ? 'bg-slate-900' : 'bg-slate-900/70 hover:bg-slate-900'
-        }`}
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label="查看最近活跃度格子图"
-      >
-        <span className="text-xs text-emerald-200">活跃度</span>
-        <span className="inline-flex gap-[2px]" aria-hidden="true">
-          {triggerDays.map((d) => {
-            const dateKey = toDateString(d)
-            const score = scores[dateKey] ?? 0
-            const isDone = !!doneDates[dateKey]
-            const level = scoreToLevel(score, thresholds)
-            return <span key={dateKey} className={`h-2 w-2 rounded-sm border ${LEVEL_CLASSES[isDone ? 4 : level]}`} />
-          })}
-        </span>
-      </button>
-
-      {open && (
-        <section
-          className="absolute right-0 top-11 z-30 w-[min(96vw,980px)] rounded-xl border border-emerald-800/40 bg-slate-950/95 p-4 text-slate-100 shadow-2xl backdrop-blur-sm"
-          aria-label="最近活跃度格子图"
-        >
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h3 className="m-0 text-sm font-semibold text-emerald-200">最近 {weeksToShow} 周活跃度</h3>
-              <p className="m-0 text-xs text-slate-400">{rangeText}</p>
-            </div>
-            <p className="m-0 text-xs text-slate-400">GitHub 风格热力图 · 完成态亮黄标记</p>
-          </div>
-
-          <div className="relative overflow-x-auto pb-2">
-            {hoverCell && (
-              <div className="pointer-events-none absolute -top-1 left-1/2 z-40 -translate-x-1/2 -translate-y-full rounded-md bg-black/75 px-3 py-1 text-xs text-slate-100 shadow-lg">
-                {hoverCell.dateKey}：{hoverCell.isDone ? '已完成目标 ✅ ' : ''}{Math.max(0, Math.round(hoverCell.score))} Commits
+    <section className="text-slate-100" aria-label="近期记录热力图">
+      <div className="mb-4 flex gap-1.5">
+        <div className="w-5 shrink-0" aria-hidden />
+        <div className="min-w-0 flex-1 grid grid-cols-3 gap-14">
+          {[
+            { value: totalActiveDays, label: '天' },
+            { value: formatWordCount(totalWords), label: '字数' },
+            { value: totalYears, label: '年' },
+          ].map((item, idx) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={onOpenStats}
+              className={`group min-w-0 w-full px-1 ${
+                idx === 0 ? 'text-left' : idx === 1 ? 'text-center' : 'text-right'
+              }`}
+              aria-label={`打开日记统计：${item.label}`}
+            >
+              <div className="truncate tabular-nums text-[38px] font-semibold leading-none tracking-tight text-[#AAABAB] transition-colors group-hover:text-[#2F3131]">
+                {item.value}
               </div>
-            )}
-            <div className="mb-1 flex min-w-[860px] gap-2 md:min-w-[940px]">
-              <div className="w-7 shrink-0" aria-hidden />
-              <div className="min-w-0 flex-1 grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
-                {monthMarkers.map((label, idx) => (
-                  <span key={`${label}-${idx}`} className="text-[10px] text-slate-500">
-                    {label}
-                  </span>
-                ))}
+              <div className="mt-2 text-[14px] leading-none text-[#AAABAB] transition-colors group-hover:text-[#2F3131]">
+                {item.label}
               </div>
-            </div>
-            <div className="flex min-w-[860px] gap-2 md:min-w-[940px]">
-              <div className="grid w-7 shrink-0 grid-rows-7 gap-[3px] pt-[2px]">
-                {WEEKDAY_LABELS.map((d, idx) => (
-                  <span key={d} className={`h-3 text-[10px] leading-3 text-right ${idx % 2 === 1 ? 'text-slate-400' : 'text-transparent'}`}>
-                    {idx % 2 === 1 ? d : '·'}
-                  </span>
-                ))}
-              </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
-              <div className="grid gap-[3px]" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
-                {weeks.map((col, colIdx) => (
-                  <div key={colIdx} className="grid grid-rows-7 gap-[3px]">
-                    {col.map((d) => {
-                      const dateKey = toDateString(d)
-                      const score = scores[dateKey] ?? 0
-                      const level = scoreToLevel(score, thresholds)
-                      const isSelected = selectedDate === dateKey
-                      const isDone = !!doneDates[dateKey]
-                      return (
-                        <button
-                          key={dateKey}
-                          type="button"
-                          className={[
-                            'relative flex h-3 w-3 items-center justify-center border border-slate-700/60 transition',
-                            'md:h-[14px] md:w-[14px]',
-                            isDone
-                              ? 'rounded-full bg-[#fde047] shadow-[0_0_8px_rgba(253,224,71,0.6)] border-yellow-300/80'
-                              : `rounded-sm ${LEVEL_CLASSES[level]}`,
-                            isSelected ? 'outline outline-2 outline-emerald-300 outline-offset-1' : 'hover:scale-110',
-                          ].join(' ')}
-                          title={`${dateKey} · 丰富度 ${score.toFixed(1)}${isDone ? ' · 已完成✅' : ''}`}
-                          onMouseEnter={() => setHoverCell({ dateKey, score, isDone })}
-                          onMouseLeave={() => setHoverCell(null)}
-                          onFocus={() => setHoverCell({ dateKey, score, isDone })}
-                          onBlur={() => setHoverCell(null)}
-                          onClick={() => {
-                            onSelectDate(dateKey)
-                            setOpen(false)
-                          }}
-                          aria-label={`${dateKey} 丰富度 ${score.toFixed(1)}${isDone ? ' 已完成目标' : ''}`}
-                        >
-                          {isDone && <Check size={8} strokeWidth={3} className="text-slate-900 md:h-[9px] md:w-[9px]" />}
-                        </button>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+      <div className="mb-5 flex gap-1.5" aria-hidden>
+        <div className="w-5 shrink-0" />
+        <div className="h-px flex-1 bg-[#EEF1F4]" />
+      </div>
 
-          <div className="mt-3 flex items-center justify-end gap-2 text-[11px] text-slate-400">
-            <span>低</span>
-            {LEVEL_CLASSES.map((cellClass, idx) => (
-              <span key={idx} className={`inline-block h-3 w-3 rounded-sm border ${cellClass}`} />
-            ))}
-            <span>高</span>
-            <span className="mx-1 text-slate-600">|</span>
-            <span className="inline-flex items-center gap-1">
-              <span className="inline-flex h-3 w-3 items-center justify-center rounded-full bg-[#fde047] shadow-[0_0_8px_rgba(253,224,71,0.6)]">
-                <Check size={8} strokeWidth={3} className="text-slate-900" />
+      <div className="relative">
+        <div className="mb-2 flex gap-1.5">
+          <div className="w-5 shrink-0" aria-hidden />
+          <div className="min-w-0 flex-1 grid gap-[6px]" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
+            {monthMarkers.map((label, idx) => (
+              <span key={`${label}-${idx}`} className="text-[10px] text-slate-500">
+                {label}
               </span>
-              已完成
-            </span>
+            ))}
           </div>
-        </section>
-      )}
-    </div>
+        </div>
+        <div className="flex gap-1.5">
+          <div className="grid w-5 shrink-0 grid-rows-7 gap-y-[9px] pt-[1px]">
+            {WEEKDAY_LABELS.map((d, idx) => (
+              <span key={d} className={`h-3 text-[10px] leading-3 text-right ${idx % 2 === 0 ? 'text-slate-400' : 'text-transparent'}`}>
+                {idx % 2 === 0 ? d : '·'}
+              </span>
+            ))}
+          </div>
+
+          <div className="grid min-w-0 flex-1 gap-x-[6px] gap-y-[9px]" style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
+            {weeks.map((col, colIdx) => (
+              <div key={colIdx} className="grid grid-rows-7 gap-y-[9px]">
+                {col.map((d) => {
+                  const dateKey = toDateString(d)
+                  const score = scores[dateKey] ?? 0
+                  const level = scoreToLevel(score, thresholds)
+                  const isSelected = selectedDate === dateKey
+                  const isDone = !!doneDates[dateKey]
+                  return (
+                    <button
+                      key={dateKey}
+                      type="button"
+                      className={[
+                        'relative mx-auto flex h-[23px] w-[23px] items-center justify-center border transition',
+                        isDone
+                          ? 'rounded-full bg-[#fde047] shadow-[0_0_6px_rgba(253,224,71,0.6)] border-yellow-300/80'
+                          : `rounded-sm ${LEVEL_CLASSES[level]}`,
+                        isSelected ? 'outline outline-1 outline-emerald-300 outline-offset-1' : 'hover:scale-110',
+                      ].join(' ')}
+                      onClick={() => onSelectDate(dateKey)}
+                      aria-label={`${dateKey} 丰富度 ${score.toFixed(1)}${isDone ? ' 已完成目标' : ''}`}
+                    >
+                      {isDone && <Check size={8} strokeWidth={3} className="text-slate-900" />}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs text-slate-400">{gentleHint}</p>
+
+    </section>
   )
 }

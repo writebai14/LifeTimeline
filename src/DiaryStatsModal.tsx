@@ -7,6 +7,9 @@ interface Props {
   wordCounts?: Record<string, number>
   doneDates?: Record<string, boolean>
   onSelectDate: (date: string) => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  showTrigger?: boolean
 }
 
 interface DayCell {
@@ -64,19 +67,33 @@ function getMondayFirstOffset(year: number, month: number): number {
   return (jsWeekday + 6) % 7
 }
 
-export function DiaryStatsModal({ selectedDate, scores, wordCounts = {}, doneDates = {}, onSelectDate }: Props) {
-  const [open, setOpen] = useState(false)
+export function DiaryStatsModal({
+  selectedDate,
+  scores,
+  wordCounts = {},
+  doneDates = {},
+  onSelectDate,
+  open,
+  onOpenChange,
+  showTrigger = true,
+}: Props) {
+  const [innerOpen, setInnerOpen] = useState(false)
   const [hoverText, setHoverText] = useState<string>('')
   const wrapRef = useRef<HTMLDivElement>(null)
+  const visible = open ?? innerOpen
+  const setVisible = (next: boolean) => {
+    if (onOpenChange) onOpenChange(next)
+    else setInnerOpen(next)
+  }
 
   useEffect(() => {
-    if (!open) return
+    if (!visible) return
     const onEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') setVisible(false)
     }
     window.addEventListener('keydown', onEsc)
     return () => window.removeEventListener('keydown', onEsc)
-  }, [open])
+  }, [visible])
 
   const selectedYear = Number(selectedDate.slice(0, 4))
   const current = new Date()
@@ -117,23 +134,25 @@ export function DiaryStatsModal({ selectedDate, scores, wordCounts = {}, doneDat
 
   return (
     <div className="relative" ref={wrapRef}>
-      <button
-        type="button"
-        className={`inline-flex h-9 items-center gap-2 rounded-md border border-emerald-800/60 px-3 text-emerald-100 transition ${
-          open ? 'bg-slate-900' : 'bg-slate-900/70 hover:bg-slate-900'
-        }`}
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
-        aria-label="打开日记统计"
-      >
-        <span className="text-xs text-emerald-200">日记统计</span>
-      </button>
+      {showTrigger && (
+        <button
+          type="button"
+          className={`inline-flex h-9 items-center gap-2 rounded-md border border-emerald-800/60 px-3 text-emerald-100 transition ${
+            visible ? 'bg-slate-900' : 'bg-slate-900/70 hover:bg-slate-900'
+          }`}
+          onClick={() => setVisible(true)}
+          aria-expanded={visible}
+          aria-label="打开日记统计"
+        >
+          <span className="text-xs text-emerald-200">日记统计</span>
+        </button>
+      )}
 
-      {open && (
+      {visible && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-6"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false)
+            if (e.target === e.currentTarget) setVisible(false)
           }}
         >
           <section className="flex h-[min(90vh,860px)] w-[min(96vw,1280px)] flex-col rounded-xl border border-emerald-800/40 bg-slate-950/95 p-5 text-slate-100 shadow-2xl backdrop-blur-sm">
@@ -144,7 +163,7 @@ export function DiaryStatsModal({ selectedDate, scores, wordCounts = {}, doneDat
               </div>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={() => setVisible(false)}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-700 text-slate-300 hover:bg-slate-900"
                 aria-label="关闭日记统计"
               >
@@ -206,7 +225,7 @@ export function DiaryStatsModal({ selectedDate, scores, wordCounts = {}, doneDat
                             onBlur={() => setHoverText('')}
                             onClick={() => {
                               onSelectDate(cell.dateKey)
-                              setOpen(false)
+                              setVisible(false)
                             }}
                             aria-label={`${cell.dateKey} ${cell.words}字${cell.isDone ? ' 已完成' : ''}`}
                           >

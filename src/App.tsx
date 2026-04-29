@@ -7,6 +7,7 @@ import { DateSwitcher } from './DateSwitcher'
 import { MediaUpload } from './MediaUpload'
 import { ContributionCalendar } from './ContributionCalendar'
 import { DiaryStatsModal } from './DiaryStatsModal'
+import { BookCopy, FileOutput, Inbox, Upload } from 'lucide-react'
 import './App.css'
 
 function emptyDay(date: string): Day {
@@ -54,9 +55,15 @@ function App() {
   const [day, setDay] = useState<Day | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [statsOpen, setStatsOpen] = useState(false)
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'ok' | 'fail'>('idle')
+  const [copySignal, setCopySignal] = useState(0)
+  const [exportSignal, setExportSignal] = useState(0)
+  const [importSignal, setImportSignal] = useState(0)
   const [dayScores, setDayScores] = useState<Record<string, number>>({})
   const [dayWordCounts, setDayWordCounts] = useState<Record<string, number>>({})
   const [doneDates, setDoneDates] = useState<Record<string, boolean>>({})
+  const [earliestDate, setEarliestDate] = useState<string | null>(null)
 
   const loadDay = useCallback(async (date: string) => {
     setLoading(true)
@@ -78,8 +85,10 @@ function App() {
         setDayScores({})
         setDayWordCounts({})
         setDoneDates({})
+        setEarliestDate(null)
         return
       }
+      setEarliestDate(dates[0] ?? null)
       const data = await Promise.all(
         dates.map(async (date) => {
           try {
@@ -131,6 +140,9 @@ function App() {
 
   const isToday = currentDate === todayStr()
   const isLocked = !!day?.done
+  const totalActiveDays = Object.keys(dayScores).filter((date) => (dayScores[date] ?? 0) > 0 || (dayWordCounts[date] ?? 0) > 0 || !!doneDates[date]).length
+  const totalWords = Object.values(dayWordCounts).reduce((sum, n) => sum + n, 0)
+  const totalYears = earliestDate ? new Date().getFullYear() - Number(earliestDate.slice(0, 4)) + 1 : 0
 
   return (
     <div className="app">
@@ -141,42 +153,90 @@ function App() {
           onChange={setCurrentDate}
         />
         <div className="header-actions">
-          <ContributionCalendar
-            selectedDate={currentDate}
-            scores={dayScores}
-            doneDates={doneDates}
-            onSelectDate={setCurrentDate}
-            weeksToShow={52}
-          />
-          <DiaryStatsModal
-            selectedDate={currentDate}
-            scores={dayScores}
-            wordCounts={dayWordCounts}
-            doneDates={doneDates}
-            onSelectDate={setCurrentDate}
-          />
-          <MediaUpload
-            currentDate={currentDate}
-            day={day}
-            onSave={persistDay}
-            disabled={loading || isLocked}
-          />
           {saving && <span className="saving">保存中…</span>}
         </div>
       </header>
 
-      <main className="app-main">
-        {loading ? (
-          <p className="loading">加载中…</p>
-        ) : day ? (
-          <DayView
-            key={day.date}
-            day={day}
-            isToday={isToday}
-            onUpdate={persistDay}
+      <div className="app-content">
+        <aside className="app-sidebar">
+          <ContributionCalendar
+            selectedDate={currentDate}
+            scores={dayScores}
+            doneDates={doneDates}
+            totalActiveDays={totalActiveDays}
+            totalWords={totalWords}
+            totalYears={totalYears}
+            onOpenStats={() => setStatsOpen(true)}
+            onSelectDate={setCurrentDate}
+            weeksToShow={12}
           />
-        ) : null}
-      </main>
+
+          <div className="sidebar-actions">
+            <button
+              type="button"
+              className="sidebar-action-btn"
+              onClick={() => setCopySignal((v) => v + 1)}
+            >
+              <BookCopy size={16} strokeWidth={2.2} />
+              <span>
+                {copyStatus === 'ok' ? '已复制' : copyStatus === 'fail' ? '复制失败' : '复制到备忘录'}
+              </span>
+            </button>
+            <button type="button" className="sidebar-action-btn" onClick={() => setExportSignal((v) => v + 1)}>
+              <FileOutput size={16} strokeWidth={2.2} />
+              <span>导出为文件</span>
+            </button>
+            <button
+              type="button"
+              className="sidebar-action-btn"
+              onClick={() => setImportSignal((v) => v + 1)}
+              disabled={isLocked}
+            >
+              <Inbox size={16} strokeWidth={2.2} />
+              <span>导入笔记</span>
+            </button>
+            <MediaUpload
+              currentDate={currentDate}
+              day={day}
+              onSave={persistDay}
+              disabled={loading || isLocked}
+              compact
+              icon={<Upload size={16} strokeWidth={2.2} />}
+            />
+          </div>
+        </aside>
+
+        <main className="app-main">
+          {loading ? (
+            <p className="loading">加载中…</p>
+          ) : day ? (
+            <DayView
+              key={day.date}
+              day={day}
+              isToday={isToday}
+              onUpdate={persistDay}
+            copySignal={copySignal}
+            exportSignal={exportSignal}
+            importSignal={importSignal}
+            onCopyResult={(ok) => {
+              setCopyStatus(ok ? 'ok' : 'fail')
+              setTimeout(() => setCopyStatus('idle'), 1800)
+            }}
+            />
+          ) : null}
+        </main>
+      </div>
+
+      <DiaryStatsModal
+        selectedDate={currentDate}
+        scores={dayScores}
+        wordCounts={dayWordCounts}
+        doneDates={doneDates}
+        onSelectDate={setCurrentDate}
+        open={statsOpen}
+        onOpenChange={setStatsOpen}
+        showTrigger={false}
+      />
     </div>
   )
 }

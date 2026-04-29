@@ -9,9 +9,11 @@ interface Props {
   day: Day | null
   onSave: (day: Day) => void | Promise<void>
   disabled?: boolean
+  compact?: boolean
+  icon?: React.ReactNode
 }
 
-export function MediaUpload({ currentDate, day, onSave, disabled }: Props) {
+export function MediaUpload({ currentDate, day, onSave, disabled, compact = false, icon }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState({ current: 0, total: 0 })
@@ -81,13 +83,14 @@ export function MediaUpload({ currentDate, day, onSave, disabled }: Props) {
     <div className="media-upload-wrap">
       <button
         type="button"
-        className="btn-media"
+        className={`btn-media ${compact ? 'btn-media-compact' : ''}`}
         onClick={() => inputRef.current?.click()}
         disabled={disabled || uploading}
       >
-        {uploading ? `上传中 (${progress.current}/${progress.total})…` : '批量上传照片'}
+        {icon ? <span className="btn-media-icon">{icon}</span> : null}
+        <span>{uploading ? `上传中 (${progress.current}/${progress.total})…` : '批量上传照片'}</span>
       </button>
-      {message && (
+      {message && !compact && (
         <span className={`media-upload-msg media-upload-msg--${message.type}`} role="status">
           {message.text}
         </span>

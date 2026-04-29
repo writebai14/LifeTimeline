@@ -14,6 +14,36 @@
   border-radius: 6px;
 }
 
+.btn-media-compact {
+  width: 100%;
+  min-height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #2F3131;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-media-compact:hover:not(:disabled) {
+  background: #909191;
+  color: #1b1d1d;
+  border: none;
+}
+
+.btn-media-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btn-media:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
