@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Check } from 'lucide-react'
+import { ACTIVE_DAY_TOTAL_MINUTES } from './utils'
 
 interface Props {
   selectedDate: string
@@ -16,7 +17,6 @@ interface Props {
 const LEVEL_CLASSES = [
   'bg-[#F1F1F1] border-[#E8E8E8]',
   'bg-emerald-100 border-emerald-200',
-  'bg-emerald-200 border-emerald-300',
   'bg-emerald-300 border-emerald-400',
   'bg-emerald-500 border-emerald-600',
 ]
@@ -30,22 +30,12 @@ function toDateString(d: Date): string {
   return `${y}-${m}-${day}`
 }
 
-function scoreThresholds(scores: Record<string, number>): [number, number, number] {
-  const values = Object.values(scores).filter((x) => x > 0).sort((a, b) => a - b)
-  if (values.length === 0) return [1, 2, 3]
-  const pick = (p: number) => values[Math.floor((values.length - 1) * p)]
-  const t1 = pick(0.25)
-  const t2 = Math.max(t1 + 0.001, pick(0.5))
-  const t3 = Math.max(t2 + 0.001, pick(0.75))
-  return [t1, t2, t3]
-}
-
-function scoreToLevel(score: number, thresholds: [number, number, number]): number {
+function scoreToLevel(score: number): number {
   if (score <= 0) return 0
-  if (score <= thresholds[0]) return 1
-  if (score <= thresholds[1]) return 2
-  if (score <= thresholds[2]) return 3
-  return 4
+  const ratio = Math.min(score / ACTIVE_DAY_TOTAL_MINUTES, 1)
+  if (ratio <= 0.25) return 1
+  if (ratio <= 0.55) return 2
+  return 3
 }
 
 function addDays(input: Date, delta: number): Date {
@@ -69,8 +59,12 @@ export function ContributionCalendar({
     if (value < 1000) return String(value)
     return `${Math.round(value / 1000)}K`
   }
+  const formatCoverage = (minutes: number): string => {
+    const hours = minutes / 60
+    return Number.isInteger(hours) ? `${hours}小时` : `${hours.toFixed(1)}小时`
+  }
 
-  const { weeks, thresholds, monthMarkers, gentleHint } = useMemo(() => {
+  const { weeks, monthMarkers, gentleHint } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
@@ -103,7 +97,6 @@ export function ContributionCalendar({
 
     return {
       weeks: cols,
-      thresholds: scoreThresholds(scores),
       monthMarkers: monthAtCol,
       gentleHint: gentle,
     }
@@ -170,9 +163,10 @@ export function ContributionCalendar({
                 {col.map((d) => {
                   const dateKey = toDateString(d)
                   const score = scores[dateKey] ?? 0
-                  const level = scoreToLevel(score, thresholds)
+                  const level = scoreToLevel(score)
                   const isSelected = selectedDate === dateKey
                   const isDone = !!doneDates[dateKey]
+                  const coveragePercent = Math.min(100, Math.round((score / ACTIVE_DAY_TOTAL_MINUTES) * 100))
                   return (
                     <button
                       key={dateKey}
@@ -185,7 +179,7 @@ export function ContributionCalendar({
                         isSelected ? 'outline outline-1 outline-emerald-300 outline-offset-1' : 'hover:scale-110',
                       ].join(' ')}
                       onClick={() => onSelectDate(dateKey)}
-                      aria-label={`${dateKey} 丰富度 ${score.toFixed(1)}${isDone ? ' 已完成目标' : ''}`}
+                      aria-label={`${dateKey} 已记录 ${formatCoverage(score)} / 18小时，覆盖率 ${coveragePercent}%${isDone ? ' 已完成目标' : ''}`}
                     >
                       {isDone && <Check size={8} strokeWidth={3} className="text-slate-900" />}
                     </button>

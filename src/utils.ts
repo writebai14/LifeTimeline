@@ -1,3 +1,5 @@
+import type { Block } from './types';
+
 export function todayStr(): string {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -120,4 +122,46 @@ export function toSlotStart(capturedAt: string, dateStr: string): string | null 
   const h = Math.floor(slotM / 60);
   const min = slotM % 60;
   return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
+}
+
+export const ACTIVE_DAY_START_MINUTES = 6 * 60;
+export const ACTIVE_DAY_END_MINUTES = 24 * 60;
+export const ACTIVE_DAY_TOTAL_MINUTES = ACTIVE_DAY_END_MINUTES - ACTIVE_DAY_START_MINUTES;
+
+/** 计算 06:00-24:00 范围内被时间块覆盖的去重分钟数。 */
+export function activeCoverageMinutes(blocks: Block[]): number {
+  const clipped = blocks
+    .map((block) => {
+      const start = timeToMinutes(block.start);
+      let end = timeToMinutes(block.end);
+      if (end <= start) end += 24 * 60;
+      return {
+        start: Math.max(start, ACTIVE_DAY_START_MINUTES),
+        end: Math.min(end, ACTIVE_DAY_END_MINUTES),
+      };
+    })
+    .filter((range) => range.end > range.start)
+    .sort((a, b) => a.start - b.start);
+
+  let covered = 0;
+  let currentStart: number | null = null;
+  let currentEnd = 0;
+
+  for (const range of clipped) {
+    if (currentStart === null) {
+      currentStart = range.start;
+      currentEnd = range.end;
+      continue;
+    }
+    if (range.start <= currentEnd) {
+      currentEnd = Math.max(currentEnd, range.end);
+      continue;
+    }
+    covered += currentEnd - currentStart;
+    currentStart = range.start;
+    currentEnd = range.end;
+  }
+
+  if (currentStart !== null) covered += currentEnd - currentStart;
+  return Math.min(covered, ACTIVE_DAY_TOTAL_MINUTES);
 }

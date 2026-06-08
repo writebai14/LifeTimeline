@@ -121,7 +121,7 @@
   outline-offset: 1px;
 }
 
-/* 已完成✅：在格子上叠加一个小勾，颜色仍由丰富度决定 */
+/* 已完成✅：使用独立状态色，不受普通活跃度热力影响 */
 .contrib-cell.done::after {
   content: '✓';
   position: absolute;

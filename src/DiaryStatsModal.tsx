@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, X } from 'lucide-react'
+import { ACTIVE_DAY_TOTAL_MINUTES } from './utils'
 
 interface Props {
   selectedDate: string
@@ -35,27 +36,16 @@ const MONTH_LABELS = ['01 月', '02 月', '03 月', '04 月', '05 月', '06 月'
 const HEAT_LEVEL_CLASSES = [
   'bg-slate-200/75 border-slate-300/80',
   'bg-emerald-100 border-emerald-200',
-  'bg-emerald-200 border-emerald-300',
   'bg-emerald-300 border-emerald-400',
   'bg-emerald-500 border-emerald-600',
 ]
 
-function scoreThresholds(scores: Record<string, number>): [number, number, number] {
-  const values = Object.values(scores).filter((x) => x > 0).sort((a, b) => a - b)
-  if (values.length === 0) return [1, 2, 3]
-  const pick = (p: number) => values[Math.floor((values.length - 1) * p)]
-  const t1 = pick(0.25)
-  const t2 = Math.max(t1 + 0.001, pick(0.5))
-  const t3 = Math.max(t2 + 0.001, pick(0.75))
-  return [t1, t2, t3]
-}
-
-function scoreToLevel(score: number, thresholds: [number, number, number]): number {
+function scoreToLevel(score: number): number {
   if (score <= 0) return 0
-  if (score <= thresholds[0]) return 1
-  if (score <= thresholds[1]) return 2
-  if (score <= thresholds[2]) return 3
-  return 4
+  const ratio = Math.min(score / ACTIVE_DAY_TOTAL_MINUTES, 1)
+  if (ratio <= 0.25) return 1
+  if (ratio <= 0.55) return 2
+  return 3
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -100,7 +90,10 @@ export function DiaryStatsModal({
   const currentYear = current.getFullYear()
   const currentMonth = current.getMonth()
   const maxMonth = selectedYear === currentYear ? currentMonth : 11
-  const thresholds = useMemo(() => scoreThresholds(scores), [scores])
+  const formatCoverage = (minutes: number): string => {
+    const hours = minutes / 60
+    return Number.isInteger(hours) ? `${hours}小时` : `${hours.toFixed(1)}小时`
+  }
 
   const monthCards = useMemo(() => {
     const cards: MonthCardData[] = []
@@ -200,7 +193,8 @@ export function DiaryStatsModal({
 
                       {month.days.map((cell) => {
                         const isSelected = selectedDate === cell.dateKey
-                        const level = scoreToLevel(cell.score, thresholds)
+                        const level = scoreToLevel(cell.score)
+                        const coveragePercent = Math.min(100, Math.round((cell.score / ACTIVE_DAY_TOTAL_MINUTES) * 100))
                         return (
                           <button
                             key={cell.dateKey}
@@ -214,13 +208,13 @@ export function DiaryStatsModal({
                                   : 'bg-slate-200/35 border-slate-300/50 text-slate-500',
                               isSelected ? 'outline outline-2 outline-emerald-300 outline-offset-1' : 'hover:scale-[1.04]',
                             ].join(' ')}
-                            title={`${cell.dateKey} · ${cell.words} 字 · ${cell.hasRecord ? '有记录' : '无记录'}${cell.isDone ? ' · 已完成' : ''}`}
+                            title={`${cell.dateKey} · ${cell.words} 字 · 已记录 ${formatCoverage(cell.score)} / 18小时 · ${coveragePercent}%${cell.isDone ? ' · 已完成' : ''}`}
                             onMouseEnter={() => {
-                              setHoverText(`${cell.dateKey}：${cell.words} 字 · 热力 ${Math.max(0, Math.round(cell.score))}${cell.isDone ? ' · 已完成 ✅' : ''}`)
+                              setHoverText(`${cell.dateKey}：${cell.words} 字 · 已记录 ${formatCoverage(cell.score)} / 18小时 · 覆盖率 ${coveragePercent}%${cell.isDone ? ' · 已完成 ✅' : ''}`)
                             }}
                             onMouseLeave={() => setHoverText('')}
                             onFocus={() => {
-                              setHoverText(`${cell.dateKey}：${cell.words} 字 · 热力 ${Math.max(0, Math.round(cell.score))}${cell.isDone ? ' · 已完成 ✅' : ''}`)
+                              setHoverText(`${cell.dateKey}：${cell.words} 字 · 已记录 ${formatCoverage(cell.score)} / 18小时 · 覆盖率 ${coveragePercent}%${cell.isDone ? ' · 已完成 ✅' : ''}`)
                             }}
                             onBlur={() => setHoverText('')}
                             onClick={() => {

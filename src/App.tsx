@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { todayStr } from './utils'
+import { activeCoverageMinutes, todayStr } from './utils'
 import { fetchDay, fetchDayList, saveDay } from './api'
 import type { Day } from './types'
 import { DayView } from './DayView'
@@ -17,18 +17,6 @@ function emptyDay(date: string): Day {
     media: [],
     done: false,
   }
-}
-
-function dayRichnessScore(day: Day): number {
-  const blockScore = day.blocks.length * 2
-  const mediaScore = day.media.length * 1.5
-  const taskScore = day.taskSection
-    ? [day.taskSection.todayTasks, day.taskSection.tomorrowGoals, day.taskSection.weekTasks].filter(Boolean).length * 1.2
-    : 0
-  const summaryScore = day.summary
-    ? [day.summary.completed, day.summary.notCompleted, day.summary.exceeded].filter(Boolean).length * 1.2
-    : 0
-  return blockScore + mediaScore + taskScore + summaryScore
 }
 
 function countTextChars(input?: string): number {
@@ -103,7 +91,7 @@ function App() {
       const dones: Record<string, boolean> = {}
       for (const item of data) {
         if (!item) continue
-        scores[item.date] = dayRichnessScore(item)
+        scores[item.date] = activeCoverageMinutes(item.blocks)
         words[item.date] = dayWordCount(item)
         if (item.done) dones[item.date] = true
       }
@@ -128,7 +116,7 @@ function App() {
     setSaving(true)
     try {
       await saveDay(next)
-      setDayScores((prev) => ({ ...prev, [next.date]: dayRichnessScore(next) }))
+      setDayScores((prev) => ({ ...prev, [next.date]: activeCoverageMinutes(next.blocks) }))
       setDayWordCounts((prev) => ({ ...prev, [next.date]: dayWordCount(next) }))
       setDoneDates((prev) => ({ ...prev, [next.date]: !!next.done }))
     } catch (e) {
