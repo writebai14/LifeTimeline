@@ -6,9 +6,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_ROOT = path.join(__dirname, '..', 'data');
+const DATA_ROOT = process.env.LIFETIMELINE_DATA_ROOT || path.join(__dirname, '..', 'data');
 const DAYS_DIR = path.join(DATA_ROOT, 'days');
 const MEDIA_DIR = path.join(DATA_ROOT, 'media');
+const STATIC_ROOT = process.env.LIFETIMELINE_STATIC_ROOT;
 
 [DATA_ROOT, DAYS_DIR, MEDIA_DIR].forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -109,5 +110,12 @@ app.post('/api/media/delete', express.json(), (req, res) => {
   }
 });
 
-const PORT = 3001;
+if (STATIC_ROOT && fs.existsSync(STATIC_ROOT)) {
+  app.use(express.static(STATIC_ROOT));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(STATIC_ROOT, 'index.html'));
+  });
+}
+
+const PORT = Number(process.env.PORT || 3001);
 app.listen(PORT, () => console.log(`LifeTimeline API: http://localhost:${PORT}`));

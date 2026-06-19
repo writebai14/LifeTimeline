@@ -91,6 +91,24 @@ http://localhost:5173
  http://localhost:5173
 用浏览器打开该地址即可使用。
 
+### 3.1 试运行桌面版
+
+如果希望用桌面窗口打开 LifeTimeline，可执行：
+
+```bash
+npm run desktop
+```
+
+该命令会复用已启动的本地 API / Vite 服务；如果尚未启动，则会自动拉起开发服务，并打开 Electron 桌面窗口。当前桌面版仍是开发预览入口，不影响原有 `npm run dev` 使用方式。
+
+如需生成 macOS DMG 安装包，可执行：
+
+```bash
+npm run dist:mac
+```
+
+产物会输出到 `release/` 目录。
+
 ### 4 停止服务
 
 关闭终端或按 `Ctrl+C` 可停止服务；下次使用再次执行 `npm run dev` 即可。
