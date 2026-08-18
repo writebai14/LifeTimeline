@@ -14,10 +14,11 @@ interface Props {
   copySignal?: number
   exportSignal?: number
   importSignal?: number
+  addBlockRequest?: { id: number; start: string } | null
   onCopyResult?: (ok: boolean) => void
 }
 
-export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal = 0, importSignal = 0, onCopyResult }: Props) {
+export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal = 0, importSignal = 0, addBlockRequest = null, onCopyResult }: Props) {
   const [editingBlock, setEditingBlock] = useState<Block | null>(null)
   const [addingAt, setAddingAt] = useState<string | undefined>(undefined)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
@@ -28,6 +29,7 @@ export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal =
   const copySignalRef = useRef(copySignal)
   const exportSignalRef = useRef(exportSignal)
   const importSignalRef = useRef(importSignal)
+  const addBlockRequestRef = useRef(addBlockRequest?.id ?? 0)
   const allMediaSorted = [...day.media].sort((a, b) => new Date(a.capturedAt).getTime() - new Date(b.capturedAt).getTime())
   const blocksSorted = [...day.blocks].sort((a, b) => a.start.localeCompare(b.start))
   const trackHeight = timelineTotalHeight()
@@ -138,6 +140,14 @@ export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal =
     }
     importSignalRef.current = importSignal
   }, [importSignal, isLocked])
+
+  useEffect(() => {
+    if (!addBlockRequest || isLocked) return
+    if (addBlockRequest.id <= addBlockRequestRef.current) return
+    setEditingBlock(null)
+    setAddingAt(addBlockRequest.start)
+    addBlockRequestRef.current = addBlockRequest.id
+  }, [addBlockRequest, isLocked])
 
   const handleDeleteMedia = async (m: Media) => {
     if (isLocked) return
