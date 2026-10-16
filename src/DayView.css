@@ -210,14 +210,6 @@
   background: var(--timeline);
 }
 
-.btn-attachment.btn-delete {
-  color: var(--danger);
-}
-
-.btn-attachment.btn-delete:hover {
-  background: rgba(193, 18, 31, 0.1);
-}
-
 .photo-row-actions select {
   font-size: 0.75rem;
   padding: 3px 6px;

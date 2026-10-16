@@ -5,10 +5,9 @@ import type { Day } from './types'
 import { getBestReminder, type Reminder } from './reminders'
 import { DayView } from './DayView'
 import { DateSwitcher } from './DateSwitcher'
-import { MediaUpload } from './MediaUpload'
 import { ContributionCalendar } from './ContributionCalendar'
 import { DiaryStatsModal } from './DiaryStatsModal'
-import { BookCopy, FileOutput, Inbox, Upload } from 'lucide-react'
+import { BookCopy, FileOutput, Inbox } from 'lucide-react'
 import './App.css'
 
 function emptyDay(date: string): Day {
@@ -236,14 +235,6 @@ function App() {
               <Inbox size={16} strokeWidth={2.2} />
               <span>导入笔记</span>
             </button>
-            <MediaUpload
-              currentDate={currentDate}
-              day={day}
-              onSave={persistDay}
-              disabled={loading || isLocked}
-              compact
-              icon={<Upload size={16} strokeWidth={2.2} />}
-            />
           </div>
         </aside>
 

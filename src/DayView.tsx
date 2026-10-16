@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { dayOfWeek, blockPosition5to5, timelineTotalHeight, TIMELINE_PIXELS_PER_HOUR, ratioToTimeSlot } from './utils'
-import { mediaUrl, deleteMedia } from './api'
+import { mediaUrl } from './api'
 import { formatDayExport, formatDayForClipboard, parseDayImport } from './exportDay'
-import type { Day, Block, Media } from './types'
+import type { Day, Block } from './types'
 import { CATEGORY_COLORS } from './constants'
 import { BlockEditor } from './BlockEditor'
 import './DayView.css'
@@ -149,24 +149,6 @@ export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal =
     addBlockRequestRef.current = addBlockRequest.id
   }, [addBlockRequest, isLocked])
 
-  const handleDeleteMedia = async (m: Media) => {
-    if (isLocked) return
-    const nextDay: Day = {
-      ...day,
-      media: day.media.filter((x) => x.id !== m.id),
-      blocks: day.blocks.map((b) => ({
-        ...b,
-        linkedMediaIds: (b.linkedMediaIds || []).filter((id) => id !== m.id),
-      })),
-    }
-    onUpdate(nextDay)
-    try {
-      await deleteMedia(m.filePath)
-    } catch (e) {
-      console.error('删除文件失败，已从记录中移除：', e)
-    }
-  }
-
   /** 刻度顺序：5:00～24:00～4:00（每日 5 点起，凌晨后置） */
   const renderRulerHours = () =>
     Array.from({ length: 24 }, (_, i) => {
@@ -274,9 +256,6 @@ export function DayView({ day, isToday, onUpdate, copySignal = 0, exportSignal =
                     </span>
                     <div className="photo-row-actions">
                       <a href={mediaUrl(m.filePath)} download={m.filePath} className="btn-attachment">下载</a>
-                      {!isLocked && (
-                        <button type="button" className="btn-attachment btn-delete" onClick={() => handleDeleteMedia(m)}>删除</button>
-                      )}
                     </div>
                   </div>
                 </div>
