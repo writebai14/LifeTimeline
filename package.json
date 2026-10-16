@@ -1,33 +1,51 @@
 {
   "name": "lifetimeline",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"vite\"",
-    "server": "node server/index.js",
-    "test": "node --test",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "start": "node server/index.js"
+    "server": "tsx watch server/index.ts",
+    "build": "tsc && vite build && tsc -p tsconfig.server.json && node scripts/copy-migrations.mjs",
+    "start": "node build/server/index.js",
+    "db:migrate": "tsx server/cli.ts migrate",
+    "admin:create": "tsx server/cli.ts create-admin",
+    "test": "tsx --test test/*.test.ts",
+    "test:e2e": "playwright test",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "express": "^4.21.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "fflate": "^0.8.3",
+    "helmet": "^8.3.0",
     "lucide-react": "^1.7.0",
+    "pg": "^8.23.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "uuid": "^10.0.0"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
+    "@vitejs/plugin-react": "^6.1.2",
     "autoprefixer": "^10.4.27",
     "concurrently": "^9.0.1",
     "postcss": "^8.5.8",
+    "prettier": "^3.9.10",
     "tailwindcss": "^4.2.2",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.10"
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.4"
+  },
+  "engines": {
+    "node": ">=24 <25"
   }
 }

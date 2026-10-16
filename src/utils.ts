@@ -1,4 +1,4 @@
-import type { Block } from './types';
+import type { Block } from './types.js';
 
 export function todayStr(): string {
   const d = new Date();
@@ -107,21 +107,6 @@ export function ratioToTimeSlot(ratio: number): string {
   const minOfHour = minutesFrom5 % 60;
   const clockHour = (5 + hoursSince5) % 24;
   return String(clockHour).padStart(2, '0') + ':' + String(minOfHour).padStart(2, '0');
-}
-
-/** 将 ISO 时间转为当日 HH:mm（按 15 分钟向下取整） */
-export function toSlotStart(capturedAt: string, dateStr: string): string | null {
-  const d = new Date(capturedAt);
-  const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
-  const [y2, m2, d2] = dateStr.split('-').map(Number);
-  if (y !== y2 || m !== m2 || day !== d2) return null; // 非当日
-  const totalM = d.getHours() * 60 + d.getMinutes();
-  const slotM = Math.floor(totalM / 15) * 15;
-  const h = Math.floor(slotM / 60);
-  const min = slotM % 60;
-  return String(h).padStart(2, '0') + ':' + String(min).padStart(2, '0');
 }
 
 export const ACTIVE_DAY_START_MINUTES = 6 * 60;

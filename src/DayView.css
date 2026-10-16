@@ -114,110 +114,7 @@
   overflow-y: auto;
 }
 
-.day-view-right {
-  width: 300px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--border);
-  padding-left: 16px;
-  overflow: hidden;
-}
 
-.day-view-right-title {
-  margin: 0 0 12px;
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.day-view-right-empty {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.day-view-photos {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* 右侧照片：纵向单列，按拍摄时间排布 */
-.photo-row {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.photo-row:last-child {
-  border-bottom: none;
-}
-
-.photo-row.pending {
-  border-left: 3px solid var(--accent);
-  padding-left: 8px;
-  margin-left: -8px;
-}
-
-.photo-row-thumb {
-  width: 100px;
-  height: 75px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.photo-row-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.photo-row-time {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.photo-row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-attachment {
-  font-size: 0.75rem;
-  padding: 3px 6px;
-  border-radius: 4px;
-  background: var(--border);
-  color: var(--text);
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-attachment:hover {
-  background: var(--timeline);
-}
-
-.photo-row-actions select {
-  font-size: 0.75rem;
-  padding: 3px 6px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--surface);
-  min-width: 0;
-}
 
 /* 时间轴：左侧刻度 + 右侧轨道，2-7 可折叠 */
 .timeline-section {
@@ -376,11 +273,7 @@
   white-space: nowrap;
 }
 
-.block-media-count {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
+
 
 .block-delete {
   position: absolute;
@@ -399,24 +292,9 @@
 }
 
 /* 点击缩略图放大 */
-.media-lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  cursor: pointer;
-}
 
-.media-lightbox img {
-  max-width: 95vw;
-  max-height: 95vh;
-  object-fit: contain;
-  border-radius: 8px;
-  pointer-events: none;
-}
+
+
 
 /* 导入弹窗 */
 .import-overlay {

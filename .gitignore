@@ -13,3 +13,9 @@ data/
 docs/*
 !docs/CHANGELOG.md
 !docs/开发者接手指南.md
+
+!.env.example
+!docs/DEPLOYMENT.md
+playwright-report/
+test-results/
+backups/

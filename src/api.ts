@@ -1,30 +1,89 @@
-import type { Day } from './types';
-
-const BASE = '';
-
-export async function fetchDay(date: string): Promise<Day | null> {
-  const res = await fetch(`${BASE}/api/days/${date}`);
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+import type {
+  Day,
+  DayRecord,
+  DayStats,
+  User,
+  ImportBatch,
+} from "../shared/domain";
+let csrf = "";
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
 }
-
-/** 保存整日 JSON；时间块可含 `source: 'from_quick_note'`（一句话 UI 已移除，契约仍兼容）。 */
-export async function saveDay(day: Day): Promise<void> {
-  const res = await fetch(`${BASE}/api/days/${day.date}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(day),
+export async function request<T>(
+  path: string,
+  method = "GET",
+  body?: unknown,
+): Promise<T> {
+  const res = await fetch(`/api${path}`, {
+    method,
+    credentials: "same-origin",
+    headers: {
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...(method !== "GET" ? { "X-CSRF-Token": csrf } : {}),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await res.text());
+  const data = await res
+    .json()
+    .catch(() => ({ error: "服务器返回了无法读取的响应" }));
+  if (!res.ok) {
+    if (res.status === 401 && path !== "/auth/login" && path !== "/auth/me")
+      window.dispatchEvent(new Event("session-expired"));
+    throw new ApiError(res.status, data.error ?? "请求失败");
+  }
+  return data as T;
 }
-
-export async function fetchDayList(): Promise<string[]> {
-  const res = await fetch(`${BASE}/api/days`);
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+export async function session() {
+  const r = await request<{ user: User; csrf: string }>("/auth/me");
+  csrf = r.csrf;
+  return r.user;
 }
-
-export function mediaUrl(filePath: string): string {
-  return `${BASE}/media/${filePath}`;
+export async function login(username: string, password: string) {
+  const r = await request<{ user: User; csrf: string }>("/auth/login", "POST", {
+    username,
+    password,
+  });
+  csrf = r.csrf;
+  return r.user;
+}
+export async function logout() {
+  await request("/auth/logout", "POST");
+  csrf = "";
+}
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+) {
+  await request("/auth/password", "POST", { currentPassword, newPassword });
+  csrf = "";
+}
+export const fetchDay = (date: string) => request<DayRecord>(`/days/${date}`);
+export const saveDay = (day: Day, expectedRevision: number) =>
+  request<DayRecord>(`/days/${day.date}`, "PUT", { day, expectedRevision });
+export const fetchStats = () => request<DayStats[]>("/stats");
+export const previewImport = (files: { name: string; content: string }[]) =>
+  request<ImportBatch>("/imports/preview", "POST", { files });
+export const getImport = (id: string) => request<ImportBatch>(`/imports/${id}`);
+export const executeImport = (id: string, selected: number[]) =>
+  request<ImportBatch>(`/imports/${id}/execute`, "POST", { selected });
+export async function exportJson() {
+  const res = await fetch("/api/export");
+  if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new Event("session-expired"));
+    throw new Error("导出失败，请重新登录后重试");
+  }
+  download(await res.blob(), "LifeTimeline-json.zip");
+}
+export function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

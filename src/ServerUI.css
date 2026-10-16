@@ -1,0 +1,144 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+}
+.server-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0009;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.server-panel {
+  background: var(--surface, #fff);
+  color: var(--text, #222);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-height: 90vh;
+  overflow: auto;
+  width: min(100%, 440px);
+  box-shadow: 0 20px 80px #0004;
+}
+.server-panel.wide {
+  width: min(100%, 980px);
+}
+.server-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.server-panel h1,
+.server-panel h2 {
+  margin-top: 0;
+}
+.server-panel p {
+  line-height: 1.6;
+}
+.server-panel button {
+  padding: 8px 12px;
+  margin: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.server-panel button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.server-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.server-panel input:not([type="checkbox"]),
+.server-panel select {
+  padding: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 6px;
+  max-width: 100%;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.server-panel [role="alert"] {
+  color: var(--danger, #b42318);
+  white-space: pre-wrap;
+}
+.server-panel small {
+  display: block;
+}
+.inline-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin: 16px 0;
+}
+.table-scroll {
+  max-height: 45vh;
+  overflow: auto;
+}
+.server-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.server-panel td,
+.server-panel th {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 10px;
+  overflow-wrap: anywhere;
+}
+.server-panel pre {
+  white-space: pre-wrap;
+  max-height: 40vh;
+  overflow: auto;
+  background: var(--bg);
+  padding: 16px;
+}
+.history-list {
+  display: flex;
+  flex-wrap: wrap;
+  max-height: 25vh;
+  overflow: auto;
+}
+.server-account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.server-account button {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 9px;
+  border-radius: 6px;
+}
+.draft-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.data-error-banner {
+  flex-wrap: wrap;
+}
+.readonly-day {
+  opacity: 0.75;
+}

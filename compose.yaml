@@ -1,0 +1,45 @@
+name: lifetimeline
+services:
+  db:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_DB: lifetimeline
+      POSTGRES_USER: lifetimeline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lifetimeline -d lifetimeline"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  migrate:
+    build: .
+    image: lifetimeline:${APP_VERSION:-local}
+    command: ["node", "build/server/cli.js", "migrate"]
+    environment:
+      DATABASE_URL: postgres://lifetimeline:${POSTGRES_PASSWORD}@db:5432/lifetimeline
+    depends_on:
+      db:
+        condition: service_healthy
+  app:
+    build: .
+    image: lifetimeline:${APP_VERSION:-local}
+    environment:
+      DATABASE_URL: postgres://lifetimeline:${POSTGRES_PASSWORD}@db:5432/lifetimeline
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:3001}
+      ALLOW_HTTP_LOOPBACK: ${ALLOW_HTTP_LOOPBACK:-false}
+      LIFETIMELINE_DAY_HISTORY_LIMIT: ${LIFETIMELINE_DAY_HISTORY_LIMIT:-30}
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+volumes:
+  postgres_data:
